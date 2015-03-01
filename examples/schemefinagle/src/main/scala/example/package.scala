@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
+import com.treode.store._
+import com.treode.async.Async, Async.supply
+import com.treode.async.BatchIterator
+
+import com.treode.twitter.app.StoreKit
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.dataformat.smile.SmileFactory
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import com.treode.async.BatchIterator
 import com.treode.async.misc.RichOption
 import com.treode.jackson.DefaultTreodeModule
 import com.treode.store.{Bytes, TableId, TxClock}
@@ -27,6 +31,7 @@ import com.twitter.finagle.http.{Request, Response, Status}
 import org.jboss.netty.handler.codec.http.HttpResponseStatus
 import com.twitter.finagle.http.filter.{CommonLogFormatter, LoggingFilter}
 import com.twitter.logging.Logger
+import scala.collection.mutable.HashMap
 
 
 package object example {
@@ -108,4 +113,39 @@ package object example {
 
     def fromJson [A: Manifest]: A =
       textJson.readValue [A] (s)
-  }}
+  }
+  
+  class Schema (mapping: HashMap [String, Long]) {
+    
+	def getTableId (s: String): TableId = {
+      val id = mapping.get (s)
+      id match {
+        case Some (id)
+          => id. toString(). getTableId
+		case None =>
+          throw new BadRequestException (s"Bad table ID: $s")
+	  }}
+  }
+
+  class SchematicStore (store: Store, schema: Schema) {
+
+    def read (name: String, key: String, rt: TxClock): Async [Seq [Value]] = {
+      val ops = Seq (ReadOp (schema.getTableId(name), Bytes (key)))
+      store.read (rt, ops:_*)
+    }
+      
+    def update (name: String, key: String, value: JsonNode, tx: TxId, ct: TxClock): Async [TxClock] = {
+      val ops = Seq (WriteOp.Update (schema.getTableId(name), Bytes (key), value.toBytes))
+      store.write (tx, ct, ops:_*)
+    }
+	
+    def delete (name: String, key: String, tx: TxId, ct: TxClock): Async [TxClock] = {
+      val ops = Seq (WriteOp.Delete (schema.getTableId(name), Bytes (key)))
+      store.write (tx, ct, ops:_*)
+    }
+
+    def scan (name: String, key: Bound [Key], window: Window, slice: Slice): BatchIterator [Cell] = {
+      store.scan (schema.getTableId(name), key, window, slice)
+    }
+  }
+}

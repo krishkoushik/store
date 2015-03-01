@@ -5,7 +5,7 @@ assemblySettings
 
 gitStampSettings
 
-name := "finagle-example"
+name := "schemefinagle-example"
 
 version := "0.3.0-SNAPSHOT"
 
@@ -25,7 +25,7 @@ resolvers += Resolver.url (
   "treode-oss",
   new URL ("https://oss.treode.com/ivy")) (Resolver.ivyStylePatterns)
 
-jarName in assembly := "finagle-server.jar"
+jarName in assembly := "schemefinagle-server.jar"
 
 mainClass in assembly := Some ("example.Main")
 

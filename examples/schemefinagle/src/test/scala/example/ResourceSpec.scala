@@ -29,18 +29,24 @@ import com.treode.twitter.finagle.http.filter._
 import com.twitter.finagle.Http
 import org.hamcrest.{Description, Matcher, Matchers, TypeSafeMatcher}, Matchers._
 import org.scalatest.FreeSpec
+import scala.collection.mutable.HashMap
 
 class ResourceSpec extends FreeSpec {
 
   def served (test: (Int, StubStore) => Any) {
     val store = StubStore()
     val port = Random.nextInt (65535 - 49152) + 49152
+	val map = new HashMap[String, Long]();
+	map += ("table1" -> 0x1);
+	map += ("table2" -> 0x2);
+	map += ("table3" -> 0x3);
+	map += ("table4" -> 0x4);
     val server = Http.serve (
       s":$port",
       NettyToFinagle andThen
       BadRequestFilter andThen
       JsonExceptionFilter andThen
-      new Resource (0, store))
+      new Resource (0, new SchematicStore(store, new Schema(map))))
     try {
       test (port, store)
     } finally {
