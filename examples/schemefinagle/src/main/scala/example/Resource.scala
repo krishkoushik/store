@@ -19,6 +19,7 @@ package example
 import com.fasterxml.jackson.databind.JsonNode
 import com.treode.async.Async, Async.supply
 import com.treode.cluster.HostId
+//import com.treode.store.{Cell, Bound, TxClock, Batch, Window, Slice, StaleException, Key}
 import com.treode.store._
 import com.treode.twitter.finagle.http.RichRequest
 import com.treode.twitter.util._
