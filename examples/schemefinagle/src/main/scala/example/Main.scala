@@ -37,10 +37,7 @@ class Serve extends TwitterServer with StoreKit with TreodeAdmin {
   def main() {
     
     val map = new HashMap[String, Long]()
-    map += ("table1"->0x1)
-    map += ("table2"->0x2)
-    map += ("table3"->0x3)
-    map += ("table4"->0x4)
+
     val schema =
       new Schema (map)
 

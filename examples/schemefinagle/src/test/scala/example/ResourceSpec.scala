@@ -23,7 +23,7 @@ import com.jayway.restassured.RestAssured.given
 import com.jayway.restassured.response.{Response => RestAssuredResponse}
 import com.jayway.restassured.specification.ResponseSpecification
 import com.treode.async.stubs.{StubGlobals, StubScheduler}, StubGlobals.scheduler
-import com.treode.store.{Bytes, Cell, TxClock, TxId, WriteOp, StaleException, TxId, Key}, WriteOp._
+import com.treode.store.{Bytes, Cell, TxClock, WriteOp, StaleException, TxId, Key}, WriteOp._
 import com.treode.store.stubs.StubStore
 import com.treode.twitter.finagle.http.filter._
 import com.twitter.finagle.Http
@@ -291,7 +291,7 @@ class ResourceSpec extends FreeSpec {
           .statusCode (412)
         .when
           .delete ("/table/table1?key=abc")
-        assertSeq (cell ("abc", ts1, entity)) (store.scan (table1))
+        assertSeq (cell ("abc", ts1, entity)) (store.scan ("table1"))
       }}
 
   "When the database has entries and history" - {
