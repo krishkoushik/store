@@ -106,7 +106,10 @@ class Resource (host: HostId, store: Store) extends Service [Request, Response] 
       case Root / "table" / tab :? KeyParam (key) =>
         req.method match {
           case Method.Get =>
+          {
+            Thread sleep 5000
             read (req, tab.getTableId, key) .toTwitterFuture
+          }
           case Method.Put =>
             put (req, tab.getTableId, key) .toTwitterFuture
           case Method.Delete =>
