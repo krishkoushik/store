@@ -36,6 +36,8 @@ class Resource (host: HostId, store: Store) extends Service [Request, Response] 
     val ct = req.conditionTxClock (TxClock.MinValue)
     val ops = Seq (ReadOp (tab, Bytes (key)))
     store.read (rt, ops:_*) .map { vs =>
+      Thread sleep 5000
+      println("Sleep over... processing request");
       val v = vs.head
       v.value match {
         case Some (value) if ct < v.time =>
@@ -101,7 +103,8 @@ class Resource (host: HostId, store: Store) extends Service [Request, Response] 
     }}
 
   def apply (req: Request): Future [Response] = {
-    Path (req.path) :? req.params match {
+    println("Received request")
+    val ret = Path (req.path) :? req.params match {
 
       case Root / "table" / tab :? KeyParam (key) =>
         req.method match {
@@ -133,5 +136,8 @@ class Resource (host: HostId, store: Store) extends Service [Request, Response] 
 
       case _ =>
         Future.value (respond (req, Status.NotFound))
-    }}
+    }
+    println("Sent for processing")
+    ret
+  }
 }
