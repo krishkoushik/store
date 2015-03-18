@@ -16,6 +16,10 @@
 
 package example
 
+import com.twitter.finagle.http._
+import com.twitter.finagle.server._
+import com.twitter.finagle.netty3._
+
 import com.treode.twitter.app.StoreKit
 import com.treode.twitter.finagle.http.filter._
 import com.treode.twitter.server.TreodeAdmin
@@ -24,6 +28,8 @@ import com.twitter.finagle.http.filter.ExceptionFilter
 import com.twitter.finagle.util.InetSocketAddressUtil.{parseHosts, toPublic}
 import com.twitter.server.TwitterServer
 import com.twitter.util.Await
+
+
 
 class Serve extends TwitterServer with StoreKit with TreodeAdmin {
 
@@ -49,15 +55,14 @@ class Serve extends TwitterServer with StoreKit with TreodeAdmin {
     val resource =
       new Resource (controller.hostId, controller.store)
 
-    val server = Http.serve (
+    val server = NewHttp.serve (
       httpAddr,
       NettyToFinagle andThen
       LoggingFilter andThen
       ExceptionFilter andThen
       BadRequestFilter andThen
       JsonExceptionFilter andThen
-      PeersFilter ("/peers", controller) andThen
-      resource)
+      PeersFilter ("/peers", controller) andThen resource)
 
     onExit {
       server.close()

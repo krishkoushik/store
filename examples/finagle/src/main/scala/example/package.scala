@@ -27,6 +27,31 @@ import com.twitter.finagle.http.{Request, Response, Status}
 import org.jboss.netty.handler.codec.http.HttpResponseStatus
 import com.twitter.finagle.http.filter.{CommonLogFormatter, LoggingFilter}
 import com.twitter.logging.Logger
+import com.twitter.finagle.server._
+import com.twitter.finagle.{Http, Service}
+import Http.Server
+import com.twitter.finagle.{ServerCodecConfig, Stack}
+import com.twitter.util._
+
+import java.net.{InetSocketAddress, SocketAddress}
+import com.twitter.finagle.ServiceFactory
+import com.twitter.finagle.ListeningServer
+
+import com.twitter.conversions.storage._
+import com.twitter.finagle.client._
+import com.twitter.finagle.dispatch.SerialServerDispatcher
+import com.twitter.finagle.http.codec.{HttpClientDispatcher, HttpServerDispatcher}
+import com.twitter.finagle.http.filter.DtabFilter
+import com.twitter.finagle.http._
+import com.twitter.finagle.netty3._
+import com.twitter.finagle.param.Stats
+import com.twitter.finagle.ssl.Ssl
+import com.twitter.finagle.transport.Transport
+import com.twitter.finagle.tracing._
+import java.net.{InetSocketAddress, SocketAddress}
+import org.jboss.netty.channel.Channel
+import org.jboss.netty.handler.codec.http._
+
 
 
 package object example {
@@ -108,4 +133,28 @@ package object example {
 
     def fromJson [A: Manifest]: A =
       textJson.readValue [A] (s)
-  }}
+  }
+
+  object NewHttp extends com.twitter.finagle.Server[HttpRequest, HttpResponse] {
+
+    import Http._
+
+    class NewServer() extends Server {
+      override protected def newDispatcher(transport: Transport[In, Out],
+          service: Service[HttpRequest, HttpResponse]) = {
+        val Stats(stats) = params[Stats]
+          val dtab = DtabFilter.Netty
+          new NewHttpServerDispatcher(
+              new HttpTransport(transport), dtab andThen service, stats.scope("dispatch"))
+      }
+      protected def copy1(
+          stack: Any,
+          params: Any
+          ): NewServer = this
+    }
+
+    val newServer = new NewServer();
+    def serve(addr: SocketAddress, service: ServiceFactory[HttpRequest, HttpResponse]): ListeningServer =
+      newServer.serve(addr, service)
+  }
+}
