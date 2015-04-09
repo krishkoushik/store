@@ -254,7 +254,8 @@ object TreodeBuild extends Build {
       publish := {},
 
       libraryDependencies ++= Seq (
-          "com.jayway.restassured" % "rest-assured" % "2.4.0" % "test"))
+          "com.jayway.restassured" % "rest-assured" % "2.4.0" % "test",
+          "org.parboiled" %% "parboiled" % "2.1.0"))
 
   // A standalone server for system tests.  Separated to keep system testing components out of
   // production code (these components are in the default config in this project).
